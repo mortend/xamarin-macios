@@ -1,0 +1,29 @@
+# Runs the device tests on iOS 32b devices.
+parameters:
+- name: disableProviCleanup
+  type: boolean
+  default: false
+
+- name: clearProviCache
+  type: boolean
+  default: false
+
+resources:
+  repositories:
+  - repository: maccore
+    type: github
+    name: xamarin/maccore
+    ref: refs/heads/device-tests-yaml # should this be on a branch and not on master???
+    endpoint: xamarin
+
+variables:
+  - template: templates/variables.yml
+
+stages:
+- template: templates/device-tests-stage.yml
+  parameters:
+    testsLabels: '--label=run-ios-32-tests,run-non-monotouch-tests,run-monotouch-tests,run-mscorlib-tests'
+    statusContext: 'VSTS: device tests iOS 32b'
+    iOSDevicePool: 'VSEng-Xamarin-QA'
+    iOSDeviceDemand: 'xismoke-32' 
+    WindowsDevicePool: 'VSEng-Xamarin-Win-XMA'
