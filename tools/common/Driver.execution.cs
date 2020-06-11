@@ -100,6 +100,10 @@ namespace Xamarin.Bundler {
 				lock (output)
 					output.AppendLine (line);
 			});
+
+			if (verbosity > 0)
+				Console.WriteLine ($"{path} {StringUtils.FormatArguments (args)}");
+
 			var p = Execution.RunWithCallbacksAsync (path, args, env, outputCallback, errorCallback).Result;
 
 			if (output_received != null)
