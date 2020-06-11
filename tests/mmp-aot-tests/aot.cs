@@ -63,7 +63,7 @@ namespace Xamarin.MMP.Tests.Unit
 		{
 			commandsRun.Add (Tuple.Create <string, IList<string>>(path, args));
 			if (path != AOTCompiler.StripCommand && path != AOTCompiler.DeleteDebugSymbolCommand) {
-				Assert.AreEqual (TestRootDir, env ["MONO_PATHS"], "MONO_PATH should be set to our expected value");
+				Assert.AreEqual (TestRootDir, env ["MONO_PATH"], "MONO_PATH should be set to our expected value");
 			}
 			return 0;
 		}
