@@ -32,7 +32,7 @@ namespace Xamarin.Utils {
 		public TextWriter StandardOutput { get; private set; }
 		public TextWriter StandardError { get; private set; }
 
-		static void StartOutputThread (TaskCompletionSource<Execution> tcs, object lockobj, StreamReader reader, TextWriter writer, string thread_name)
+		static Thread StartOutputThread (TaskCompletionSource<Execution> tcs, object lockobj, StreamReader reader, TextWriter writer, string thread_name)
 		{
 			var thread = new Thread (() => {
 				try {
@@ -49,6 +49,7 @@ namespace Xamarin.Utils {
 				Name = thread_name,
 			};
 			thread.Start ();
+			return thread;
 		}
 
 		public Task<Execution> RunAsync ()
@@ -94,8 +95,8 @@ namespace Xamarin.Utils {
 				p.Start ();
 				var pid = p.Id;
 
-				StartOutputThread (tcs, lockobj, p.StandardOutput, StandardOutput, $"StandardOutput reader for {p.StartInfo.FileName} (PID: {pid})");
-				StartOutputThread (tcs, lockobj, p.StandardError, StandardError, $"StandardError reader for {p.StartInfo.FileName} (PID: {pid})");
+				var stdoutThread = StartOutputThread (tcs, lockobj, p.StandardOutput, StandardOutput, $"StandardOutput reader for {p.StartInfo.FileName} (PID: {pid})");
+				var stderrThread = StartOutputThread (tcs, lockobj, p.StandardError, StandardError, $"StandardError reader for {p.StartInfo.FileName} (PID: {pid})");
 
 				CancellationToken?.Register (() => {
 					// Don't call tcs.TrySetCanceled, that won't return an Execution result to the caller.
@@ -125,6 +126,10 @@ namespace Xamarin.Utils {
 						// even if we've called the WaitForExit (int) overload
 						p.WaitForExit ();
 						ExitCode = p.ExitCode;
+
+						stdoutThread.Join (TimeSpan.FromSeconds (1));
+						stderrThread.Join (TimeSpan.FromSeconds (1));
+
 						tcs.TrySetResult (this);
 					} catch (Exception e) {
 						tcs.TrySetException (e);
